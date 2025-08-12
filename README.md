@@ -1,177 +1,204 @@
-# ERP Query Application
+# Report System Backend API
 
-Ứng dụng ERP Query đã được tái cấu trúc theo mô hình modular với cấu trúc thư mục rõ ràng.
+A FastAPI-based backend for the FlexiReport system, providing RESTful APIs for report generation, data source management, and template management.
 
-## Cấu trúc dự án
+## Features
 
-```
-App_query/
-├── app/
-│   ├── __init__.py              # Application factory
-│   ├── config/
-│   │   └── __init__.py          # Configuration settings
-│   ├── extensions/
-│   │   └── __init__.py          # Flask extensions
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── database_models.py   # Database models
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── database_service.py  # Business logic
-│   ├── blueprints/
-│   │   ├── __init__.py
-│   │   ├── health.py            # Health check endpoints
-│   │   └── database.py          # Database operation endpoints
-│   └── utils/
-│       ├── __init__.py
-│       ├── logging_utils.py     # Logging utilities
-│       └── validation_utils.py  # Validation utilities
-├── run.py                       # Application entry point
-├── requirements.txt             # Dependencies
-└── README.md                    # This file
-```
+- 🚀 **FastAPI**: High-performance web framework for building APIs
+- 🔐 **Authentication**: JWT-based authentication system
+- 📊 **Data Sources**: Support for multiple database types (MySQL, PostgreSQL, CSV, Excel, API)
+- 📋 **Templates**: Report template management and sharing
+- 🔐 **Permissions**: Role-based access control for templates
+- 📤 **Reports**: Dynamic report generation and export
+- 🗄️ **Database**: SQLAlchemy ORM with MySQL support
 
-## Các thành phần chính
+## Prerequisites
 
-### 1. Configuration (`app/config/`)
-- Quản lý cấu hình ứng dụng
-- Hỗ trợ nhiều môi trường (development, production, testing)
-- Cấu hình CORS, database, security settings
+- Python 3.8+
+- MySQL 5.7+ or PostgreSQL 12+
+- Redis (optional, for caching)
 
-### 2. Models (`app/models/`)
-- `database_models.py`: Database connection và connection pooling
-- Quản lý kết nối database an toàn và hiệu quả
+## Installation
 
-### 3. Services (`app/services/`)
-- `database_service.py`: Business logic cho database operations
-- Tách biệt logic nghiệp vụ khỏi controllers
-
-### 4. Blueprints (`app/blueprints/`)
-- `health.py`: Health check và monitoring endpoints
-- `database.py`: Database operation endpoints
-- Tổ chức routes theo chức năng
-
-### 5. Utils (`app/utils/`)
-- `logging_utils.py`: Cấu hình và quản lý logging
-- `validation_utils.py`: Validation và security utilities
-
-### 6. Extensions (`app/extensions/`)
-- Khởi tạo Flask extensions (CORS, etc.)
-
-## Cách sử dụng
-
-### 1. Cài đặt dependencies
+1. Clone the repository:
 ```bash
-# Tạo virtual environment (nếu chưa có)
-python3 -m venv venv
+git clone <repository-url>
+cd report_system
+```
 
-# Kích hoạt virtual environment
-source venv/bin/activate
+2. Create virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
-# Cài đặt dependencies
+3. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Cài đặt ODBC Driver (nếu chưa có)
+4. Set up environment variables:
 ```bash
-# Cài đặt Microsoft ODBC Driver 18 cho SQL Server
-sudo apt-get update
-sudo apt-get install -y curl apt-transport-https gnupg
-
-# Thêm Microsoft repository
-curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-
-# Cài đặt driver
-sudo apt-get update
-sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
+cp .env.example .env
+# Edit .env with your database and configuration settings
 ```
 
-### 3. Chạy ứng dụng
+## Configuration
+
+Update the `.env` file with your settings:
+
+```env
+# Database
+MYSQL_SERVER=localhost
+MYSQL_PORT=3306
+MYSQL_USER=report_user
+MYSQL_PASSWORD=secure_password
+MYSQL_DB=report_system
+
+# Security
+SECRET_KEY=your-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# CORS
+BACKEND_CORS_ORIGINS=["http://localhost:3000"]
+```
+
+## Running the Application
+
+### Development Mode
+
 ```bash
-# Sử dụng script tự động
+# Start the development server
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Production Mode
+
+```bash
+# Using the start script
 ./start_app.sh
 
-# Hoặc chạy thủ công
-source venv/bin/activate
-python3 run.py
+# Or manually
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### 3. Cấu hình môi trường
-```bash
-export DEBUG=True
-export PORT=3000
-```
+## API Documentation
+
+Once the server is running, you can access:
+
+- **Interactive API Docs**: http://localhost:8000/docs
+- **ReDoc Documentation**: http://localhost:8000/redoc
+- **OpenAPI Schema**: http://localhost:8000/api/v1/openapi.json
 
 ## API Endpoints
 
 ### Health Check
-- `GET /api/health` - Health check
-- `GET /api/stats` - Application statistics
+- `GET /api/v1/health` - Health status
 
-### Database Operations
-- `POST /api/test-connection` - Test database connection
-- `POST /api/list-databases` - List databases
-- `POST /api/tables` - Get tables
-- `POST /api/columns` - Get columns
-- `POST /api/select` - Select data
-- `POST /api/query` - Execute custom query
-- `POST /api/export-excel` - Export to Excel
+### Data Sources
+- `GET /api/v1/data-sources/` - Get all data sources
+- `POST /api/v1/data-sources/` - Create new data source
+- `POST /api/v1/data-sources/test-connection` - Test connection
+- `GET /api/v1/data-sources/{id}/tables` - Get tables from data source
+- `GET /api/v1/data-sources/{id}/tables/{table}/columns` - Get columns from table
 
-## Lợi ích của cấu trúc mới
+### Templates
+- `GET /api/v1/templates/` - Get all templates
+- `POST /api/v1/templates/` - Create new template
+- `GET /api/v1/templates/{id}` - Get specific template
+- `PUT /api/v1/templates/{id}` - Update template
+- `DELETE /api/v1/templates/{id}` - Delete template
+- `POST /api/v1/templates/{id}/duplicate` - Duplicate template
 
-1. **Modular**: Mỗi thành phần có trách nhiệm riêng biệt
-2. **Maintainable**: Dễ bảo trì và mở rộng
-3. **Testable**: Có thể test từng thành phần riêng biệt
-4. **Scalable**: Dễ dàng thêm tính năng mới
-5. **Clean Architecture**: Tuân thủ nguyên tắc clean architecture
+### Reports
+- `POST /api/v1/reports/run` - Execute report
+- `POST /api/v1/reports/preview` - Preview report
+- `GET /api/v1/reports/history` - Get report history
 
-## Migration từ app.py cũ
+### Permissions
+- `POST /api/v1/permissions/grant` - Grant template permissions
+- `GET /api/v1/permissions/template/{id}` - Get template permissions
+- `DELETE /api/v1/permissions/template/{id}/user/{user_id}` - Revoke permission
+- `GET /api/v1/permissions/check/{id}` - Check user permission
 
-File `app.py` cũ đã được tách thành các thành phần:
-- Configuration → `app/config/__init__.py`
-- Database models → `app/models/database_models.py`
-- Business logic → `app/services/database_service.py`
-- Routes → `app/blueprints/`
-- Utilities → `app/utils/`
-- Application factory → `app/__init__.py`
+## Project Structure
 
-## Monitoring
-
-Ứng dụng có tích hợp monitoring:
-- Health check endpoint
-- Application statistics
-- Request/query/error counters
-- Connection pool monitoring
-
-## Troubleshooting
-
-### Lỗi ODBC Driver
-Nếu gặp lỗi `Can't open lib 'ODBC Driver 18 for SQL Server'`, hãy:
-
-1. **Kiểm tra driver đã cài:**
-```bash
-odbcinst -q -d
+```
+app/
+├── api/                    # API endpoints
+│   └── v1/
+│       ├── endpoints/      # Route handlers
+│       └── api.py         # Main router
+├── core/                   # Core configuration
+│   └── config.py          # Settings and configuration
+├── models/                 # Database models
+├── schemas/                # Pydantic schemas
+├── services/               # Business logic
+├── utils/                  # Utility functions
+└── main.py                 # Application entry point
 ```
 
-2. **Kiểm tra trong Python:**
-```bash
-python3 -c "import pyodbc; print(pyodbc.drivers())"
+## Database Setup
+
+1. Create MySQL database:
+```sql
+CREATE DATABASE report_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'report_user'@'localhost' IDENTIFIED BY 'secure_password';
+GRANT ALL PRIVILEGES ON report_system.* TO 'report_user'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
-3. **Test kết nối:**
+2. Run migrations (when available):
 ```bash
-python3 test_connection.py
+# Future: alembic upgrade head
 ```
 
-### Lỗi Virtual Environment
-Đảm bảo kích hoạt virtual environment trước khi chạy:
+## Development
+
+### Code Style
+
+- Use Black for code formatting
+- Follow PEP 8 guidelines
+- Use type hints throughout the codebase
+
+### Testing
+
 ```bash
-source venv/bin/activate
+# Run tests (when available)
+pytest
+
+# Run with coverage
+pytest --cov=app
 ```
 
-### Lỗi Permission
-Nếu script không chạy được:
+### Adding New Endpoints
+
+1. Create endpoint file in `app/api/v1/endpoints/`
+2. Add router to `app/api/v1/api.py`
+3. Create corresponding schema in `app/schemas/`
+4. Create service in `app/services/`
+5. Add tests
+
+## Docker Support
+
+Build and run with Docker:
+
 ```bash
-chmod +x start_app.sh
-``` 
+# Build image
+docker build -t report-system .
+
+# Run container
+docker run -p 8000:8000 report-system
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License. 
